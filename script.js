@@ -46,7 +46,9 @@ const compileShader = (type, source) => {
     GL.shaderSource(shader, source)
 	GL.compileShader(shader)
 	
-	console.log(GL.getShaderInfoLog(shader))
+    if (!GL.getShaderParameter(shader, GL.COMPILE_STATUS)) {
+        console.error('Shader compile failed with: ' + GL.getShaderInfoLog(shader))
+    }
 
     return shader
 }
@@ -93,6 +95,28 @@ const createPlane = () => {
 	)
 }
 
+const createTexture = () => {
+    const image = new Image()
+	
+	image.src = require('./assets/1.jpg')
+
+    image.onload = () => {
+		const texture = GL.createTexture()
+
+		GL.activeTexture(GL.TEXTURE0)
+		GL.bindTexture(GL.TEXTURE_2D, texture)
+
+		GL.pixelStorei(GL.UNPACK_FLIP_Y_WEBGL, true)
+		GL.texImage2D(GL.TEXTURE_2D, 0, GL.RGB, GL.RGB, GL.UNSIGNED_BYTE, image)
+
+		GL.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_WRAP_S, GL.CLAMP_TO_EDGE)
+		GL.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_WRAP_T, GL.CLAMP_TO_EDGE)
+		GL.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MIN_FILTER, GL.LINEAR)
+
+		GL.uniform1i(GL.getUniformLocation(PROGRAM, 'uTexture'), 0)
+    }
+}
+
 const clearCanvas = () => {
     GL.clearColor(0.26, 1, 0.93, 1.0)
     GL.clear(GL.COLOR_BUFFER_BIT)
@@ -100,9 +124,9 @@ const clearCanvas = () => {
 
 const draw = timeStamp => {
 
-	GL.uniform1f(GL.getUniformLocation(PROGRAM, 'u_time'), timeStamp / 5000.0)
-	GL.uniform2fv(GL.getUniformLocation(PROGRAM, 'u_canvas_size'), [ W * 1.0, H * 1.0 ])
-	GL.uniform2fv(GL.getUniformLocation(PROGRAM, 'u_mouse_position'), [ mouse.x, mouse.y ])
+	GL.uniform1f(GL.getUniformLocation(PROGRAM, 'uTime'), timeStamp / 1000)
+	GL.uniform2fv(GL.getUniformLocation(PROGRAM, 'uResolution'), [ W * 1.0, H * 1.0 ])
+	GL.uniform2fv(GL.getUniformLocation(PROGRAM, 'uMousePos'), [ mouse.x, mouse.y ])
 
     GL.drawArrays(GL.TRIANGLE_STRIP, 0, 4)
 
@@ -120,7 +144,8 @@ const initEventListeners = () => {
 (() => {
     clearCanvas()
     createPlane()
-    createProgram()
+	createProgram()
+	createTexture()
     setSize()
     initEventListeners()
     draw()

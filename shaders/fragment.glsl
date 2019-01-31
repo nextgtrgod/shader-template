@@ -1,18 +1,13 @@
 
 precision mediump float;
 
-uniform float u_time;
-uniform vec2 u_canvas_size;
-uniform vec2 u_mouse_position;
+uniform float uTime;
+uniform vec2 uResolution;
+uniform vec2 uMousePos;
 
 void main() {
 
-	vec2 k = u_mouse_position / u_canvas_size;
+    vec2 nMousePos = uMousePos.xy / uResolution.xy;
 
-    gl_FragColor = vec4(
-            abs(k.x * sin(u_time)),
-            abs(k.y * sin(u_time)),
-            abs(cos(u_time * 5.0)),
-			1.0
-		);
+    gl_FragColor = vec4(gl_FragCoord.xy / uResolution.xy * nMousePos.xy, 0.5 * abs(sin(uTime)), 1.0);
 }
